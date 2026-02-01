@@ -1,3 +1,6 @@
+
+  <img src="media/icon.png" width="44%" />
+
 # Skill Manager for Google Antigravity
 
 [![VS Code Marketplace](https://img.shields.io/badge/VS%20Code-Marketplace-blue?logo=visual-studio-code)](https://marketplace.visualstudio.com/)
@@ -5,7 +8,8 @@
 
 🧠 **Browse, search, and install Antigravity skills from GitHub repositories with a beautiful UI.**
 
-![Skill Browser Screenshot](media/icon.png)
+
+
 
 ## Features
 
