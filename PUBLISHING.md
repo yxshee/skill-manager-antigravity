@@ -189,5 +189,6 @@ Successfully published 'skill-manager-antigravity@1.0.0'!
 
 ## Extension URLs After Publishing
 
+- **GitHub Repository**: `https://github.com/yxshee/skill-manager-antigravity`
 - **Marketplace Page**: `https://marketplace.visualstudio.com/items?itemName=YOUR_PUBLISHER.skill-manager-antigravity`
 - **Install Command**: `ext install YOUR_PUBLISHER.skill-manager-antigravity`
