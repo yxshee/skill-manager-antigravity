@@ -2,7 +2,7 @@
   "name": "skill-manager-antigravity",
   "displayName": "Skill Manager for Google Antigravity",
   "description": "Browse, search, and install Antigravity skills from GitHub repositories",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "publisher": "yxshee",
   "license": "Apache-2.0",
   "icon": "media/icon.png",
@@ -87,7 +87,21 @@
           "icon": "media/skill-icon.svg"
         }
       ]
-    }
+    },
+    "views": {
+      "skill-manager": [
+        {
+          "id": "skillManager.welcome",
+          "name": "Skills"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "skillManager.welcome",
+        "contents": "Browse and install Antigravity skills.\n[Open Skill Browser](command:skillManager.browse)"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
