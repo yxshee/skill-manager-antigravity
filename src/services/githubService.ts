@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import fetch from 'node-fetch';
 import { RepositoryTree, TreeNode, FileContent, RateLimitInfo } from '../models/repository';
 import { Skill, SkillFile } from '../models/skill';
 
@@ -103,7 +104,7 @@ export class GitHubService {
       headers: this.getHeaders(cached?.etag)
     });
     
-    this.updateRateLimit(response.headers);
+    this.updateRateLimit(response.headers as any);
     
     // Handle 304 Not Modified
     if (response.status === 304 && cached) {

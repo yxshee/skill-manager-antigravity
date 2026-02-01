@@ -2,7 +2,7 @@
   "name": "skill-manager-antigravity",
   "displayName": "Skill Manager for Google Antigravity",
   "description": "Browse, search, and install Antigravity skills from GitHub repositories",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "publisher": "yxshee",
   "license": "Apache-2.0",
   "icon": "media/icon.png",
@@ -87,18 +87,6 @@
           "icon": "media/skill-icon.svg"
         }
       ]
-    },
-    "views": {
-      "skill-manager": [
-        {
-          "id": "skillManager.installed",
-          "name": "Installed Skills"
-        },
-        {
-          "id": "skillManager.available",
-          "name": "Available Skills"
-        }
-      ]
     }
   },
   "scripts": {
@@ -115,6 +103,7 @@
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.6",
     "@types/node": "20.x",
+    "@types/node-fetch": "^2.6.11",
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",

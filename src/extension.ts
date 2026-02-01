@@ -1,12 +1,10 @@
 import * as vscode from 'vscode';
 import { GitHubService, SkillParser, SkillInstaller } from './services';
 import { SkillBrowserPanel } from './views/skillBrowserPanel';
-import { SkillTreeProvider } from './views/skillTreeProvider';
 
 let githubService: GitHubService;
 let skillParser: SkillParser;
 let skillInstaller: SkillInstaller;
-let skillTreeProvider: SkillTreeProvider;
 
 /**
  * Extension activation
@@ -18,19 +16,15 @@ export function activate(context: vscode.ExtensionContext): void {
   githubService = new GitHubService(context);
   skillParser = new SkillParser();
   skillInstaller = new SkillInstaller(githubService, skillParser, context);
-  skillTreeProvider = new SkillTreeProvider(skillInstaller, githubService, skillParser);
 
-  // Register tree view providers
-  const installedTreeView = vscode.window.createTreeView('skillManager.installed', {
-    treeDataProvider: skillTreeProvider,
-    showCollapseAll: true
-  });
-  context.subscriptions.push(installedTreeView);
+  // Initialize output channel
+  const outputChannel = vscode.window.createOutputChannel('Skill Manager');
+  context.subscriptions.push(outputChannel);
 
   // Register commands
   const browseCommand = vscode.commands.registerCommand(
     'skillManager.browse',
-    () => SkillBrowserPanel.createOrShow(context, githubService, skillParser, skillInstaller)
+    () => SkillBrowserPanel.createOrShow(context, githubService, skillParser, skillInstaller, outputChannel)
   );
 
   const installCommand = vscode.commands.registerCommand(
@@ -80,7 +74,6 @@ export function activate(context: vscode.ExtensionContext): void {
 
             if (result.success) {
               vscode.window.showInformationMessage(`Successfully installed ${skill.name}`);
-              skillTreeProvider.refresh();
             } else {
               vscode.window.showErrorMessage(`Failed to install: ${result.error}`);
             }
@@ -148,7 +141,6 @@ export function activate(context: vscode.ExtensionContext): void {
           if (confirm === 'Uninstall') {
             await skillInstaller.uninstall(selected.skill);
             vscode.window.showInformationMessage(`Uninstalled ${selected.skill.name}`);
-            skillTreeProvider.refresh();
           }
           break;
       }
@@ -159,50 +151,17 @@ export function activate(context: vscode.ExtensionContext): void {
     'skillManager.refresh',
     () => {
       githubService.clearCache();
-      skillTreeProvider.refresh();
       vscode.window.showInformationMessage('Skills cache refreshed');
     }
   );
 
-  // Uninstall command for tree view items
-  const uninstallCommand = vscode.commands.registerCommand(
-    'skillManager.uninstallSkill',
-    async (item: { skill?: { name: string; localPath: string } }) => {
-      if (!item?.skill) {
-        return;
-      }
-      
-      const confirm = await vscode.window.showWarningMessage(
-        `Uninstall ${item.skill.name}?`,
-        { modal: true },
-        'Uninstall'
-      );
-      
-      if (confirm === 'Uninstall') {
-        await skillInstaller.uninstall(item.skill as any);
-        vscode.window.showInformationMessage(`Uninstalled ${item.skill.name}`);
-        skillTreeProvider.refresh();
-      }
-    }
-  );
-
-  // Open skill folder command
-  const openFolderCommand = vscode.commands.registerCommand(
-    'skillManager.openSkillFolder',
-    (item: { skill?: { localPath: string } }) => {
-      if (item?.skill?.localPath) {
-        vscode.commands.executeCommand('revealFileInOS', vscode.Uri.file(item.skill.localPath));
-      }
-    }
-  );
+  // No longer needed: uninstallSkill, openSkillFolder (handled by Webview or Manage)
 
   context.subscriptions.push(
     browseCommand,
     installCommand,
     manageCommand,
-    refreshCommand,
-    uninstallCommand,
-    openFolderCommand
+    refreshCommand
   );
 
   // Show welcome message on first install

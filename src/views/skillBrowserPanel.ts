@@ -31,7 +31,8 @@ export class SkillBrowserPanel {
     private context: vscode.ExtensionContext,
     private githubService: GitHubService,
     private skillParser: SkillParser,
-    private skillInstaller: SkillInstaller
+    private skillInstaller: SkillInstaller,
+    private outputChannel: vscode.OutputChannel
   ) {
     this.panel = panel;
 
@@ -66,7 +67,7 @@ export class SkillBrowserPanel {
     const command = msg.command;
 
     // Validate command is in allowed list
-    const allowedCommands = ['install', 'installBatch', 'search', 'refresh', 'filterCategory', 'openReadme', 'openSource', 'clearSearch'];
+    const allowedCommands = ['install', 'installBatch', 'search', 'refresh', 'filterCategory', 'openReadme', 'openSource', 'clearSearch', 'openSettings'];
     if (typeof command !== 'string' || !allowedCommands.includes(command)) {
       return;
     }
@@ -98,6 +99,14 @@ export class SkillBrowserPanel {
       case 'clearSearch':
         this.sendSkillsToWebview();
         break;
+      case 'openSettings':
+        await this.handleOpenSettings();
+        break;
+      case 'openReadme':
+        if (typeof msg.skillId === 'string') {
+          await this.handleOpenReadme(msg.skillId);
+        }
+        break;
     }
   }
 
@@ -110,6 +119,10 @@ export class SkillBrowserPanel {
       type,
       message
     });
+
+    // Logging to output channel
+    const logPrefix = `[${new Date().toLocaleTimeString()}] [${type.toUpperCase()}]`;
+    this.outputChannel.appendLine(`${logPrefix} ${message}`);
 
     // Keep only last 50 entries
     if (this.activityLog.length > 50) {
@@ -141,7 +154,8 @@ export class SkillBrowserPanel {
     context: vscode.ExtensionContext,
     githubService: GitHubService,
     skillParser: SkillParser,
-    skillInstaller: SkillInstaller
+    skillInstaller: SkillInstaller,
+    outputChannel: vscode.OutputChannel
   ): void {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
@@ -172,7 +186,8 @@ export class SkillBrowserPanel {
       context,
       githubService,
       skillParser,
-      skillInstaller
+      skillInstaller,
+      outputChannel
     );
   }
 
@@ -424,6 +439,31 @@ export class SkillBrowserPanel {
   }
 
   /**
+   * Handle opening settings
+   */
+  private async handleOpenSettings(): Promise<void> {
+    vscode.commands.executeCommand('workbench.action.openSettings', '@ext:yxshee.skill-manager-antigravity');
+  }
+
+  /**
+   * Handle opening readme
+   */
+  private async handleOpenReadme(skillId: string): Promise<void> {
+    const skill = this.skills.find(s => s.id === skillId);
+    if (!skill) {
+      return;
+    }
+
+    try {
+      const readmePath = skill.path ? `${skill.path}/SKILL.md` : 'SKILL.md';
+      const url = `https://github.com/${skill.repository}/blob/main/${readmePath}`;
+      vscode.env.openExternal(vscode.Uri.parse(url));
+    } catch (error) {
+      this.logActivity('error', `Failed to open readme: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
    * Generate nonce for CSP
    */
   private getNonce(): string {
@@ -564,16 +604,15 @@ export class SkillBrowserPanel {
         <!-- HERO SECTION -->
         <header class="hero">
           <div class="hero-content">
-            <h1>🧠 Antigravity Skill Manager</h1>
-            <p class="hero-subtitle">Browse and install skills to enhance your Antigravity IDE</p>
-            <p class="hero-path">📁 Skills install to: <code>~/.gemini/antigravity/skills/</code></p>
+            <h1>Skill Browser</h1>
+            <p class="hero-subtitle">Antigravity Toolkit Manager</p>
           </div>
           <div class="hero-actions">
             <button class="btn btn-secondary" onclick="refresh()">
-              <span class="codicon">↻</span> Refresh
+              <span>↻</span> Refresh
             </button>
             <button class="btn btn-secondary" onclick="openSettings()">
-              <span class="codicon">⚙</span> Settings
+              <span>⚙</span> Settings
             </button>
           </div>
         </header>
@@ -592,14 +631,11 @@ export class SkillBrowserPanel {
             <!-- SEARCH & ACTIONS -->
             <div class="toolbar">
               <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 Search skills..." />
+                <input type="text" id="searchInput" placeholder="Search skills..." />
                 <button id="clearSearch" class="btn-clear hidden" onclick="clearSearch()">✕</button>
               </div>
-              <div class="toolbar-stats">
-                <span id="resultCount">0 skills</span>
-              </div>
               <button class="btn btn-primary" id="installSelectedBtn" onclick="installSelected()" disabled>
-                📦 Install Selected (<span id="selectedCount">0</span>)
+                Install Selected (<span id="selectedCount">0</span>)
               </button>
             </div>
 
@@ -610,7 +646,7 @@ export class SkillBrowserPanel {
 
             <!-- EMPTY STATE -->
             <div id="emptyState" class="empty-state hidden">
-              <div class="empty-icon">🔍</div>
+              <div class="empty-icon">∅</div>
               <h3>No skills found</h3>
               <p>Try a different search term or clear filters</p>
               <button class="btn btn-secondary" onclick="clearSearch()">Clear Search</button>
@@ -658,32 +694,33 @@ export class SkillBrowserPanel {
         font-family: var(--vscode-font-family);
         background: var(--vscode-editor-background);
         color: var(--vscode-editor-foreground);
-        line-height: 1.5;
+        line-height: 1.4;
       }
       .btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 6px;
-        font-size: 13px;
+        padding: 6px 12px;
+        border: 1px solid var(--vscode-widget-border);
+        border-radius: 2px;
+        font-size: 12px;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        transition: all 0.15s ease;
+        background: transparent;
+        color: var(--vscode-button-foreground);
       }
       .btn-primary {
         background: var(--vscode-button-background);
-        color: var(--vscode-button-foreground);
+        border-color: var(--vscode-button-background);
       }
       .btn-primary:hover:not(:disabled) {
         background: var(--vscode-button-hoverBackground);
       }
-      .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+      .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
       .btn-secondary {
-        background: var(--vscode-button-secondaryBackground);
-        color: var(--vscode-button-secondaryForeground);
+        background: transparent;
+        color: var(--vscode-foreground);
       }
-      .btn-secondary:hover { filter: brightness(1.1); }
+      .btn-secondary:hover { background: var(--vscode-toolbar-hoverBackground); }
     `;
   }
 
@@ -703,39 +740,25 @@ export class SkillBrowserPanel {
 
       /* HERO */
       .hero {
-        padding: 20px 24px;
-        background: linear-gradient(135deg, 
-          color-mix(in srgb, var(--vscode-button-background) 15%, transparent),
-          color-mix(in srgb, #9c27b0 10%, transparent)
-        );
+        padding: 24px;
+        background: var(--vscode-editor-background);
         border-bottom: 1px solid var(--vscode-widget-border);
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 16px;
+        align-items: baseline;
       }
       .hero h1 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 4px;
+        font-size: 18px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        text-transform: uppercase;
       }
       .hero-subtitle {
         color: var(--vscode-descriptionForeground);
-        font-size: 14px;
+        font-size: 11px;
+        margin-top: 2px;
       }
-      .hero-path {
-        font-size: 12px;
-        color: var(--vscode-descriptionForeground);
-        margin-top: 4px;
-      }
-      .hero-path code {
-        background: var(--vscode-textCodeBlock-background);
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-family: var(--vscode-editor-font-family);
-      }
-      .hero-actions { display: flex; gap: 8px; }
+      .hero-actions { display: flex; gap: 4px; }
 
       /* MAIN LAYOUT */
       .main-layout {
@@ -746,27 +769,29 @@ export class SkillBrowserPanel {
 
       /* SIDEBAR */
       .sidebar {
-        width: 200px;
-        padding: 16px;
+        width: 180px;
+        padding: 20px 16px;
         border-right: 1px solid var(--vscode-widget-border);
         background: var(--vscode-sideBar-background);
         overflow-y: auto;
       }
       .sidebar-title {
-        font-size: 11px;
+        font-size: 10px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
         color: var(--vscode-descriptionForeground);
-        margin-bottom: 12px;
+        margin-bottom: 16px;
+        font-weight: 600;
       }
       .category-item {
-        padding: 8px 12px;
-        border-radius: 6px;
+        padding: 6px 10px;
+        border-radius: 0;
         cursor: pointer;
         display: flex;
         justify-content: space-between;
-        font-size: 13px;
-        margin-bottom: 4px;
+        font-size: 12px;
+        margin-bottom: 2px;
+        border-left: 2px solid transparent;
       }
       .category-item:hover {
         background: var(--vscode-list-hoverBackground);
@@ -774,16 +799,17 @@ export class SkillBrowserPanel {
       .category-item.active {
         background: var(--vscode-list-activeSelectionBackground);
         color: var(--vscode-list-activeSelectionForeground);
+        border-left-color: var(--vscode-foreground);
       }
       .category-count {
-        color: var(--vscode-descriptionForeground);
-        font-size: 11px;
+        opacity: 0.5;
+        font-size: 10px;
       }
 
       /* CONTENT */
       .content {
         flex: 1;
-        padding: 16px 24px;
+        padding: 24px;
         overflow-y: auto;
       }
 
@@ -791,8 +817,8 @@ export class SkillBrowserPanel {
       .toolbar {
         display: flex;
         align-items: center;
-        gap: 16px;
-        margin-bottom: 16px;
+        gap: 12px;
+        margin-bottom: 24px;
       }
       .search-box {
         flex: 1;
@@ -800,12 +826,12 @@ export class SkillBrowserPanel {
       }
       .search-box input {
         width: 100%;
-        padding: 10px 36px 10px 14px;
+        padding: 6px 10px;
         border: 1px solid var(--vscode-input-border);
-        border-radius: 8px;
+        border-radius: 0;
         background: var(--vscode-input-background);
         color: var(--vscode-input-foreground);
-        font-size: 14px;
+        font-size: 13px;
       }
       .search-box input:focus {
         outline: none;
@@ -813,85 +839,68 @@ export class SkillBrowserPanel {
       }
       .btn-clear {
         position: absolute;
-        right: 10px;
+        right: 8px;
         top: 50%;
         transform: translateY(-50%);
         background: none;
         border: none;
         color: var(--vscode-descriptionForeground);
         cursor: pointer;
-        font-size: 14px;
       }
       .hidden { display: none !important; }
-      .toolbar-stats {
-        color: var(--vscode-descriptionForeground);
-        font-size: 13px;
-        white-space: nowrap;
-      }
 
       /* SKILLS GRID */
       .skills-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 16px;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
       }
 
       /* SKILL CARD */
       .skill-card {
-        background: var(--vscode-editorWidget-background);
         border: 1px solid var(--vscode-widget-border);
-        border-radius: 10px;
         padding: 16px;
         display: flex;
         flex-direction: column;
-        transition: all 0.2s ease;
+        background: var(--vscode-editor-background);
       }
       .skill-card:hover {
         border-color: var(--vscode-focusBorder);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       }
       .skill-card.installed {
-        border-left: 3px solid var(--vscode-charts-green);
+        border-top: 2px solid var(--vscode-foreground);
       }
       .skill-header {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
         margin-bottom: 8px;
       }
       .skill-name {
-        font-weight: 600;
+        font-weight: 500;
         font-size: 14px;
-        word-break: break-word;
       }
-      .skill-checkbox { width: 16px; height: 16px; cursor: pointer; }
+      .skill-checkbox { cursor: pointer; }
       .skill-description {
         color: var(--vscode-descriptionForeground);
         font-size: 12px;
-        margin-bottom: 12px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        flex: 1;
+        margin-bottom: 16px;
+        min-height: 36px;
       }
       .skill-tags {
         display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-        margin-bottom: 12px;
+        gap: 4px;
+        margin-bottom: 16px;
       }
       .skill-tag {
-        background: color-mix(in srgb, var(--vscode-button-background) 20%, transparent);
-        color: var(--vscode-button-background);
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 10px;
+        border: 1px solid var(--vscode-widget-border);
+        padding: 2px 6px;
+        font-size: 9px;
+        text-transform: uppercase;
+        color: var(--vscode-descriptionForeground);
       }
       .skill-tag.category {
-        background: color-mix(in srgb, #9c27b0 20%, transparent);
-        color: #9c27b0;
+        border-color: var(--vscode-foreground);
+        color: var(--vscode-foreground);
       }
       .skill-footer {
         display: flex;
@@ -903,76 +912,49 @@ export class SkillBrowserPanel {
       }
       .skill-actions { display: flex; gap: 4px; }
       .skill-actions button {
-        padding: 4px 8px;
-        font-size: 11px;
         background: transparent;
         border: 1px solid var(--vscode-widget-border);
-        border-radius: 4px;
-        color: var(--vscode-descriptionForeground);
+        color: var(--vscode-foreground);
         cursor: pointer;
-      }
-      .skill-actions button:hover {
-        background: var(--vscode-list-hoverBackground);
+        padding: 4px;
+        font-size: 10px;
       }
       .install-btn {
-        padding: 6px 12px;
-        font-size: 12px;
+        padding: 4px 10px;
+        font-size: 11px;
       }
       .install-btn.installed {
-        background: var(--vscode-charts-green);
+        background: var(--vscode-descriptionForeground);
+        border-color: var(--vscode-descriptionForeground);
+        color: var(--vscode-editor-background);
       }
-      .install-btn.installing {
-        background: var(--vscode-charts-yellow);
-        color: #000;
-      }
-
-      /* EMPTY STATE */
-      .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: var(--vscode-descriptionForeground);
-      }
-      .empty-icon { font-size: 48px; margin-bottom: 16px; }
 
       /* ACTIVITY PANEL */
       .activity-panel {
         border-top: 1px solid var(--vscode-widget-border);
         background: var(--vscode-sideBar-background);
-        padding: 8px 16px;
-        max-height: 120px;
+        padding: 8px 24px;
       }
       .activity-header {
         display: flex;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 8px;
+        gap: 8px;
+        margin-bottom: 4px;
       }
-      .status-indicator {
-        font-size: 12px;
-        font-weight: 500;
-      }
-      .status-idle { color: var(--vscode-descriptionForeground); }
-      .status-loading { color: var(--vscode-charts-yellow); }
-      .status-installing { color: var(--vscode-charts-blue); }
+      .status-indicator { font-size: 10px; }
       .activity-title {
-        font-size: 11px;
+        font-size: 9px;
         text-transform: uppercase;
-        color: var(--vscode-descriptionForeground);
+        letter-spacing: 0.5px;
+        opacity: 0.7;
       }
       .activity-log {
-        font-size: 11px;
-        max-height: 60px;
+        font-size: 10px;
+        max-height: 40px;
         overflow-y: auto;
       }
-      .log-entry {
-        padding: 2px 0;
-        display: flex;
-        gap: 8px;
-      }
-      .log-time { color: var(--vscode-descriptionForeground); }
-      .log-success { color: var(--vscode-charts-green); }
-      .log-error { color: var(--vscode-errorForeground); }
-      .log-warning { color: var(--vscode-charts-yellow); }
+      .log-entry { display: flex; gap: 8px; margin-bottom: 2px; }
+      .log-time { opacity: 0.5; }
 
       /* MODAL */
       .modal {
@@ -1066,13 +1048,18 @@ export class SkillBrowserPanel {
 
       function renderCategories() {
         const container = document.getElementById('categoriesList');
-        let html = '<div class="category-item ' + (activeCategory === 'all' ? 'active' : '') + '" onclick="filterCategory(\\'all\\')"><span>All</span><span class="category-count">' + allSkills.length + '</span></div>';
+        let html = '<div class="category-item ' + (activeCategory === 'all' ? 'active' : '') + '" data-category="all"><span>All</span><span class="category-count">' + allSkills.length + '</span></div>';
         
-        for (const cat of categories.slice(0, 15)) {
+        for (const cat of categories.slice(0, 20)) {
           const isActive = activeCategory === cat.name ? 'active' : '';
-          html += '<div class="category-item ' + isActive + '" onclick="filterCategory(\\'' + escapeHtml(cat.name) + '\\')"><span>' + escapeHtml(cat.name) + '</span><span class="category-count">' + cat.count + '</span></div>';
+          html += '<div class="category-item ' + isActive + '" data-category="' + escapeHtml(cat.name) + '"><span>' + escapeHtml(cat.name) + '</span><span class="category-count">' + cat.count + '</span></div>';
         }
         container.innerHTML = html;
+        
+        // Add click listeners
+        container.querySelectorAll('.category-item').forEach(el => {
+          el.onclick = () => filterCategory(el.dataset.category);
+        });
       }
 
       function renderSkills(skills) {
@@ -1087,6 +1074,18 @@ export class SkillBrowserPanel {
         
         empty.classList.add('hidden');
         grid.innerHTML = skills.map(skill => createSkillCard(skill)).join('');
+        
+        // Add click listeners for skills
+        grid.querySelectorAll('.skill-card').forEach(card => {
+          const id = card.dataset.id;
+          const installBtn = card.querySelector('.install-btn');
+          const readmeBtn = card.querySelector('.readme-btn');
+          const checkbox = card.querySelector('.skill-checkbox');
+
+          if (installBtn) installBtn.onclick = (e) => { e.stopPropagation(); install(id); };
+          if (readmeBtn) readmeBtn.onclick = (e) => { e.stopPropagation(); openReadme(id); };
+          if (checkbox) checkbox.onchange = (e) => { toggleSelect(id); };
+        });
       }
 
       function createSkillCard(skill) {
@@ -1101,7 +1100,6 @@ export class SkillBrowserPanel {
             <div class="skill-header">
               <span class="skill-name">\${escapeHtml(skill.name)}</span>
               <input type="checkbox" class="skill-checkbox" 
-                     onchange="toggleSelect('\${escapeHtml(skill.id)}')" 
                      \${isChecked} \${skill.isInstalled ? 'disabled' : ''} />
             </div>
             <p class="skill-description">\${escapeHtml(skill.description || 'No description')}</p>
@@ -1111,10 +1109,9 @@ export class SkillBrowserPanel {
             </div>
             <div class="skill-footer">
               <div class="skill-actions">
-                <button onclick="openReadme('\${escapeHtml(skill.id)}')">📖</button>
+                <button class="readme-btn" title="View Readme">📖</button>
               </div>
-              <button class="btn btn-primary install-btn \${btnClass}" 
-                      onclick="install('\${escapeHtml(skill.id)}')" \${btnDisabled}>\${btnText}</button>
+              <button class="btn btn-primary install-btn \${btnClass}" \${btnDisabled}>\${btnText}</button>
             </div>
           </div>
         \`;
@@ -1129,6 +1126,14 @@ export class SkillBrowserPanel {
 
       function install(skillId) {
         vscode.postMessage({ command: 'install', skillId });
+      }
+
+      function openReadme(skillId) {
+        vscode.postMessage({ command: 'openReadme', skillId });
+      }
+
+      function openSettings() {
+        vscode.postMessage({ command: 'openSettings' });
       }
 
       function toggleSelect(skillId) {
@@ -1159,10 +1164,6 @@ export class SkillBrowserPanel {
 
       function refresh() {
         vscode.postMessage({ command: 'refresh' });
-      }
-
-      function openSettings() {
-        // TODO: Open extension settings
       }
 
       function clearSearch() {
