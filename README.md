@@ -5,7 +5,7 @@
 
 🧠 **Browse, search, and install Antigravity skills from GitHub repositories with a beautiful UI.**
 
-![Skill Browser Screenshot](media/screenshot.png)
+![Skill Browser Screenshot](media/icon.png)
 
 ## Features
 
