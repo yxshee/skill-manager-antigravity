@@ -98,7 +98,7 @@ Add your own repositories in settings:
 
 ```bash
 # Clone the repository
-git clone https://github.com/antigravity-extensions/skill-manager.git
+git clone https://github.com/yxshee/skill-manager-antigravity.git
 cd skill-manager
 
 # Install dependencies
