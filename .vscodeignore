@@ -1,6 +1,10 @@
 .vscode-test/
-out/
+src/
 node_modules/
 *.vsix
 .DS_Store
 *.log
+scripts/
+.git/
+.gitignore
+tsconfig.json
