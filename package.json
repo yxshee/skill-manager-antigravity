@@ -3,7 +3,7 @@
   "displayName": "Skill Manager for Google Antigravity",
   "description": "Browse, search, and install Antigravity skills from GitHub repositories",
   "version": "1.0.0",
-  "publisher": "antigravity-extensions",
+  "publisher": "yxshee",
   "license": "Apache-2.0",
   "icon": "media/icon.png",
   "engines": {
