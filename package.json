@@ -1,0 +1,133 @@
+{
+  "name": "skill-manager-antigravity",
+  "displayName": "Skill Manager for Google Antigravity",
+  "description": "Browse, search, and install Antigravity skills from GitHub repositories",
+  "version": "1.0.0",
+  "publisher": "antigravity-extensions",
+  "license": "Apache-2.0",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "antigravity",
+    "skills",
+    "ai",
+    "agent",
+    "gemini"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antigravity-extensions/skill-manager"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "skillManager.browse",
+        "title": "Browse Skills",
+        "category": "Skill Manager"
+      },
+      {
+        "command": "skillManager.install",
+        "title": "Quick Install Skill",
+        "category": "Skill Manager"
+      },
+      {
+        "command": "skillManager.manage",
+        "title": "Manage Installed Skills",
+        "category": "Skill Manager"
+      },
+      {
+        "command": "skillManager.refresh",
+        "title": "Refresh Skills Cache",
+        "category": "Skill Manager"
+      }
+    ],
+    "configuration": {
+      "title": "Skill Manager",
+      "properties": {
+        "skillManager.repositories": {
+          "type": "array",
+          "default": [
+            "rominirani/antigravity-skills",
+            "sickn33/antigravity-awesome-skills"
+          ],
+          "description": "GitHub repositories to fetch skills from"
+        },
+        "skillManager.installPath": {
+          "type": "string",
+          "default": "",
+          "description": "Custom install path for skills (defaults to ~/.gemini/antigravity/skills/)"
+        },
+        "skillManager.githubToken": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "GitHub personal access token for higher API rate limits. [Create one here](https://github.com/settings/tokens)"
+        },
+        "skillManager.cacheExpiry": {
+          "type": "number",
+          "default": 3600,
+          "description": "Cache expiry time in seconds (default: 1 hour)"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "skill-manager",
+          "title": "Skill Manager",
+          "icon": "media/skill-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "skill-manager": [
+        {
+          "id": "skillManager.installed",
+          "name": "Installed Skills"
+        },
+        {
+          "id": "skillManager.available",
+          "name": "Available Skills"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vscode/test-cli": "^0.0.6",
+    "@vscode/test-electron": "^2.3.9",
+    "@vscode/vsce": "^2.24.0",
+    "eslint": "^8.56.0",
+    "glob": "^10.3.10",
+    "mocha": "^10.3.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "node-fetch": "^2.7.0"
+  }
+}

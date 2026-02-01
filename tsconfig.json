@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "module": "Node16",
+        "target": "ES2022",
+        "lib": [
+            "ES2022"
+        ],
+        "sourceMap": true,
+        "outDir": "out",
+        "rootDir": "src",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "Node16",
+        "resolveJsonModule": true,
+        "declaration": true,
+        "declarationMap": true
+    },
+    "exclude": [
+        "node_modules",
+        ".vscode-test",
+        "out"
+    ]
+}
