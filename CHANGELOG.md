@@ -5,6 +5,22 @@ All notable changes to the "Skill Manager for Google Antigravity" extension will
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-02-01
+
+### Added
+- **Hero Section**: Welcome banner explaining extension purpose and install path
+- **Categories Sidebar**: Filterable category list with skill counts
+- **Activity Panel**: Real-time status and timestamped activity log
+- **Enhanced Skill Cards**: Improved layout with tags and secondary actions
+
+### Changed
+- TreeView now opens Skill Browser instead of raw markdown files
+- Improved search filtering across name, description, tags, and category
+
+### Security
+- Added CSP headers with nonce-based scripts
+- Implemented message validation for webview communication
+
 ## [1.0.0] - 2026-02-01
 
 ### Added

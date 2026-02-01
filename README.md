@@ -31,8 +31,7 @@
 4. Click Install
 
 ### From VSIX
-
-1. Download the `.vsix` file from [Releases](https://github.com/antigravity-extensions/skill-manager/releases)
+1. Download the `.vsix` file from [Releases](https://github.com/yxshee/skill-manager-antigravity/releases)
 2. In VS Code: `Extensions` → `...` menu → `Install from VSIX...`
 
 ## Usage
