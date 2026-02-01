@@ -19,11 +19,11 @@ export class SkillTreeItem extends vscode.TreeItem {
     this.contextValue = 'installedSkill';
     this.iconPath = new vscode.ThemeIcon('extensions');
     
-    // Show skill folder on click
+    // Open skill browser panel on click (not raw markdown)
     this.command = {
-      command: 'vscode.open',
-      title: 'Open SKILL.md',
-      arguments: [vscode.Uri.file(`${skill.localPath}/SKILL.md`)]
+      command: 'skillManager.browse',
+      title: 'Open Skill Browser',
+      arguments: []
     };
   }
 }
